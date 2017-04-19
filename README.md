@@ -39,3 +39,4 @@ Here presented most of the resources used for implementations.
  * [PostProcessing Shader to read depth texture](http://williamchyr.com/2013/11/unity-shaders-depth-and-normal-textures/)
  * [(Catlikecoding) Custom materials and editors](http://catlikecoding.com/unity/tutorials/rendering/part-9/)
  * [(Catlikecoding) Semitransparent shadows](http://catlikecoding.com/unity/tutorials/rendering/part-12/)
+ * [Raymarching Distance Fields: Concepts and Implementation in Unity](http://flafla2.github.io/2016/10/01/raymarching.html)
