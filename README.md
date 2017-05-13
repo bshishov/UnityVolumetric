@@ -36,3 +36,7 @@ Here presented most of the resources used for implementations.
 ## Unity
  * [Blending](https://docs.unity3d.com/Manual/SL-Blend.html)
  * [3D Texture Example](https://forum.unity3d.com/threads/unity-4-3d-textures-volumes.148605/)
+ * [PostProcessing Shader to read depth texture](http://williamchyr.com/2013/11/unity-shaders-depth-and-normal-textures/)
+ * [(Catlikecoding) Custom materials and editors](http://catlikecoding.com/unity/tutorials/rendering/part-9/)
+ * [(Catlikecoding) Semitransparent shadows](http://catlikecoding.com/unity/tutorials/rendering/part-12/)
+ * [Raymarching Distance Fields: Concepts and Implementation in Unity](http://flafla2.github.io/2016/10/01/raymarching.html)
