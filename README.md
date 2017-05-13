@@ -1,7 +1,7 @@
 # UnityVolumetric
 Set of shaders and tools for volumetric rendering. Most of the shaders implemented with distance field raymarching. Shaders wew designed to do all computations inside itself, so no additional post processing, cameras, scripts are required. New shaders with custom functions, textures, lightning and blending could be easely desind by overriding some #defines inside the shader.
 
-![Sample](https://gfycat.com/ifr/PointlessDependableFieldspaniel)
+[Sample (GIF)](https://gfycat.com/ifr/PointlessDependableFieldspaniel)
 
 ### Features
  * Isosurface and translucent volumes
