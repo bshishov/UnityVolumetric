@@ -1,7 +1,9 @@
 # UnityVolumetric
-Set of shaders and tools for volumetric rendering. Most of the shaders implemented with distance field raymarching. Shaders wew designed to do all computations inside itself, so no additional post processing, cameras, scripts are required. New shaders with custom functions, textures, lightning and blending could be easely desind by overriding some #defines inside the shader.
+Set of shaders and tools for volumetric rendering. Most of the shaders implemented with distance field raymarching. Shaders wew designed to do all computations inside itself, so no additional post processing, cameras, scripts are required. New shaders with custom functions, textures, lightning and blending could be easely designed by overriding some #defines inside the shader.
 
 [Sample (GIF)](https://gfycat.com/ifr/PointlessDependableFieldspaniel)
+
+For now, this is just an attempt of implementation of volumetric rendering techniques. I will not recommend to use it (in the current state) in your projects. However, I will appreciate any help with this.
 
 ### Features
  * Isosurface and translucent volumes
@@ -13,7 +15,8 @@ Set of shaders and tools for volumetric rendering. Most of the shaders implement
  * Implement ShadowCaster pass for shadow casting
  * Proper ZWriting for overlapping volumes
  * More ways to construct the volume, from 3d texture, from rotating 2d textures and so on
- * Reduce "ladder" artifacts even on SDF isosurface.
+ * Reduce "ladder" artifacts even on SDF isosurfaces
+ * Create unitypackage
 
 # References
 Here presented most of the resources used for implementations.
