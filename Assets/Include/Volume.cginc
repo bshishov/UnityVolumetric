@@ -19,11 +19,11 @@
 #endif
 
 #ifndef VOLUME_RAYMARCH_MIN_STEP_SIZE
-#define VOLUME_RAYMARCH_MIN_STEP_SIZE 0.02
+#define VOLUME_RAYMARCH_MIN_STEP_SIZE 0.01
 #endif
 
 #ifndef VOLUME_RAYMARCH_JITTER
-#define VOLUME_RAYMARCH_JITTER 0.05
+#define VOLUME_RAYMARCH_JITTER 0.03
 #endif
 
 #ifndef VOLUME_EPSILON
@@ -105,9 +105,20 @@ fixed4 oneMinusDistance(float distance)
 	return fixed4(1, 1, 1, clamp(1 - distance, 0, 1));
 }
 
-fixed4 TranclucentRaymarch(float3 rayOrigin, float3 rayDirection)
+struct RaymarchResult
 {
+	fixed4 color;
+	float3 endPoint;
+	int hitted;
+};
+
+RaymarchResult TranclucentRaymarch(float3 rayOrigin, float3 rayDirection, half depth)
+{
+	RaymarchResult o;
+	o.hitted = 0;
+
 	float d;
+	float distanceTraveled = 0;
 	float3 position = rayOrigin;
 	
 	#ifndef VOLUME_NO_JITTERING
@@ -117,7 +128,10 @@ fixed4 TranclucentRaymarch(float3 rayOrigin, float3 rayDirection)
 	float4 accumulatedColor = 0;
 
 	for (int i = 0; i < VOLUME_RAYMARCH_STEPS; i++)
-	{		
+	{
+		if (distanceTraveled > depth)
+			break;
+
 		d = VOLUME_MAP(position);
 		fixed4 sampleColor = VOLUME_COLOR_FUNCITON(d);
 		fixed4 lighted = VOLUME_LIGHT_FUNCTION(position, sampleColor, VOLUME_NORMAL_ESTIMATOR(position), rayDirection);
@@ -126,9 +140,14 @@ fixed4 TranclucentRaymarch(float3 rayOrigin, float3 rayDirection)
 		accumulatedColor = blend(accumulatedColor.rgb, accumulatedColor.a, lighted.rgb, lighted.a);
 
 		if (accumulatedColor.a > 1.0 - VOLUME_EPSILON)
+		{			
+			o.hitted = 1;
 			break;
-
-		position += rayDirection * clamp(d, VOLUME_RAYMARCH_MIN_STEP_SIZE, VOLUME_RAYMARCH_STEP_SIZE);
+		}		
+		
+		float3 step = rayDirection * clamp(d, VOLUME_RAYMARCH_MIN_STEP_SIZE, VOLUME_RAYMARCH_STEP_SIZE);
+		distanceTraveled += length(step);
+		position += step;		
 
 		if (position.x > VOLUME_BOUND || position.x < -VOLUME_BOUND)
 			break;
@@ -138,27 +157,41 @@ fixed4 TranclucentRaymarch(float3 rayOrigin, float3 rayDirection)
 			break;
 	}
 
-	return clamp(accumulatedColor, 0, 1);
+	o.endPoint = position;
+	o.color = clamp(accumulatedColor, 0, 1);
+	return o;
 }
 
-fixed4 IsosurfaceRaymarch(float3 rayOrigin, float3 rayDirection)
+RaymarchResult IsosurfaceRaymarch(float3 rayOrigin, float3 rayDirection, half depth)
 {
+	RaymarchResult o;
+	o.hitted = 0;
+	
 	float3 position = rayOrigin;		
+	half distanceTraveled = 0;
 
 	#ifndef VOLUME_NO_JITTERING
 	position += rayDirection * rand(rayOrigin.xy) * VOLUME_RAYMARCH_JITTER;
 	#endif	
 
 	for (int i = 0; i < VOLUME_RAYMARCH_STEPS; i++)
-	{		
+	{	
+		if (distanceTraveled > depth)
+			break;
+
 		float d = VOLUME_MAP(position);
 		if (d < VOLUME_EPSILON)
 		{
 			fixed4 color = VOLUME_COLOR_FUNCITON(d);
 			fixed4 lighted = VOLUME_LIGHT_FUNCTION(position, color, VOLUME_NORMAL_ESTIMATOR(position), rayDirection);
-			return lighted;
+			o.color = lighted;
+			o.endPoint = position;
+			return o;
 		}			
-		position += rayDirection * clamp(d, VOLUME_RAYMARCH_MIN_STEP_SIZE, VOLUME_RAYMARCH_STEP_SIZE);		
+
+		float3 step = rayDirection * clamp(d, VOLUME_RAYMARCH_MIN_STEP_SIZE, VOLUME_RAYMARCH_STEP_SIZE);
+		distanceTraveled += length(step);
+		position += step;		
 		
 		if (position.x > VOLUME_BOUND || position.x < -VOLUME_BOUND)
 			break;
@@ -167,28 +200,67 @@ fixed4 IsosurfaceRaymarch(float3 rayOrigin, float3 rayDirection)
 		if (position.z > VOLUME_BOUND || position.z < -VOLUME_BOUND)
 			break;
 	}
-
-	return 0;
+	
+	o.color = 0;
+	o.endPoint = rayOrigin;
+	return o;
 }
+
+#ifndef VOLUME_NO_DEPTH
+uniform sampler2D _CameraDepthTexture;
+#endif
 
 struct VolumeV2F
 {
 	float4 screenPos: SV_POSITION;	
 	float4 localPos : TEXCOORD0;	
+	float4 projPos : TEXCOORD1;
+};
+
+struct VolumeFragmentOutput
+{ 
+	fixed4 color : SV_Target;
+
+#ifndef VOLUME_NO_DEPTH
+	// TODO: implement depth for shadow caster pass
+	//half depth : SV_Depth;
+#endif
 };
 
 VolumeV2F VolumeVert(appdata_base v)
 {
 	VolumeV2F o;
 	o.screenPos = mul(UNITY_MATRIX_MVP, v.vertex);
-	o.localPos = v.vertex;	
+	o.localPos = v.vertex;
+	o.projPos = ComputeScreenPos(o.screenPos);
 	return o;
 }
 
-fixed4 VolumeFrag(VolumeV2F i) : SV_Target
+VolumeFragmentOutput VolumeFrag(VolumeV2F i)
 {
 	float3 localViewDir = normalize(ObjSpaceViewDir(i.localPos));
-	return VOLUME_RAYMARCH_FUNCTION(i.localPos, -localViewDir);
+
+#ifndef VOLUME_NO_DEPTH
+	// Get the depth from the screen
+	half depth = SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos));
+
+	// Compute the difference between object depth and the screen depth (in world space coordinates) and convert it to object space
+	depth = length(mul(unity_WorldToObject, half3(LinearEyeDepth(depth) - i.projPos.w, 0, 0)));
+	//depth = LinearEyeDepth(depth) - i.projPos.w;
+#else
+	half depth = 1000000;
+#endif
+
+	VolumeFragmentOutput o;
+	RaymarchResult res = VOLUME_RAYMARCH_FUNCTION(i.localPos, -localViewDir, depth);
+	o.color = res.color;
+
+#ifndef VOLUME_NO_DEPTH
+	// TODO: implement depth for shadow caster pass
+	// Get obj-space depth from raymarch. Convert it to world depth
+	//o.depth = 1;
+#endif
+	return o;
 }
 
 
