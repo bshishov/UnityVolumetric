@@ -239,14 +239,14 @@ VolumeV2F VolumeVert(appdata_base v)
 VolumeFragmentOutput VolumeFrag(VolumeV2F i)
 {
 	float3 localViewDir = normalize(ObjSpaceViewDir(i.localPos));
+	float3 worldViewDir = normalize(mul(unity_ObjectToWorld, localViewDir));
 
 #ifndef VOLUME_NO_DEPTH
 	// Get the depth from the screen
 	half depth = SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos));
 
 	// Compute the difference between object depth and the screen depth (in world space coordinates) and convert it to object space
-	depth = length(mul(unity_WorldToObject, half3(LinearEyeDepth(depth) - i.projPos.w, 0, 0)));
-	//depth = LinearEyeDepth(depth) - i.projPos.w;
+	depth = length(mul(unity_WorldToObject, worldViewDir * (LinearEyeDepth(depth) - i.projPos.w)));
 #else
 	half depth = 1000000;
 #endif
