@@ -17,6 +17,7 @@ For now, this is just an attempt of implementation of volumetric rendering techn
  * More ways to construct the volume, from 3d texture, from rotating 2d textures and so on
  * Reduce "ladder" artifacts even on SDF isosurfaces
  * Create unitypackage
+ * Make configuration with shader compile features
 
 # References
 Here presented most of the resources used for implementations.
