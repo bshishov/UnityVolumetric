@@ -31,14 +31,14 @@
 			}
 			 
 			#define VOLUME_NO_JITTERING      
-			#define VOLUME_RAYMARCH_STEPS 32     
+			#define VOLUME_RAYMARCH_STEPS 16     
 			#define VOLUME_RAYMARCH_FUNCTION IsosurfaceRaymarch    
 			#define VOLUME_MAP sphere                    
 			#define VOLUME_RAYMARCH_MIN_STEP_SIZE 0.001
 			#define VOLUME_LIGHT_FUNCTION specular   
 			//#define VOLUME_LIGHT_FUNCTION normalDebug
 			#define VOLUME_COLOR_FUNCITON colorFromMap  
-			#include "../Include/Volume.cginc" 
+			#include "Include/Volume.cginc"
 
 			ENDCG 
 		}

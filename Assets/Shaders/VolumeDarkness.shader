@@ -111,14 +111,14 @@
 			#define VOLUME_RAYMARCH_STEPS 24
 			//#define VOLUME_RAYMARCH_MIN_STEP_SIZE 0.005
 			//#define VOLUME_RAYMARCH_STEP_SIZE 0.05
-			//#define VOLUME_NO_DEPTH    
+			//#define VOLUME_NO_DEPTH 
 			//#define VOLUME_NO_JITTERING      
 			//#define VOLUME_RAYMARCH_FUNCTION IsosurfaceRaymarch  
 			#define VOLUME_MAP darkness                           
 			//#define VOLUME_LIGHT_FUNCTION specular 
 			//#define VOLUME_LIGHT_FUNCTION normalDebug
 			#define VOLUME_COLOR_FUNCITON colorFromMap
-			#include "../Include/Volume.cginc"      
+			#include "Include/Volume.cginc"
 
 			ENDCG  
 		}
